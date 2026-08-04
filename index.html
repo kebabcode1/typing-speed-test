@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Speed Test</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body data-theme="midnight">
+    <div id="authShell" class="auth-shell">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div>
+            <p class="eyebrow">Account</p>
+            <h2>Typing profile</h2>
+          </div>
+        </div>
+
+        <div class="auth-switch" aria-label="account selector">
+          <button id="showLoginBtn" class="secondary active" type="button">Login</button>
+          <button id="showSignupBtn" class="secondary" type="button">Sign up</button>
+        </div>
+
+        <form id="loginForm" class="auth-form" novalidate>
+          <label class="sr-only" for="loginUsername">Username</label>
+          <input id="loginUsername" type="text" placeholder="Username" maxlength="20" required />
+
+          <label class="sr-only" for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="Password" required />
+
+          <button class="primary" type="submit">Login</button>
+        </form>
+
+        <form id="signupForm" class="auth-form hidden" novalidate>
+          <label class="sr-only" for="signupName">Display name</label>
+          <input id="signupName" type="text" placeholder="Display name" maxlength="20" required />
+
+          <label class="sr-only" for="signupUsername">Username</label>
+          <input id="signupUsername" type="text" placeholder="Username" maxlength="20" required />
+          <div id="signupUsernameHint" class="auth-hint" aria-live="polite"></div>
+
+          <label class="sr-only" for="signupPassword">Password</label>
+          <input id="signupPassword" type="password" placeholder="Password" minlength="4" required />
+
+          <button class="primary" type="submit">Create account</button>
+        </form>
+
+        <div id="accountPanel" class="account-panel hidden">
+          <div class="account-header">
+            <div>
+              <p class="eyebrow">Welcome</p>
+              <h3 id="currentUserName">Player</h3>
+            </div>
+            <div class="account-actions">
+              <button id="editProfileBtn" class="ghost" type="button">Edit profile</button>
+              <button id="logoutBtn" class="ghost" type="button">Logout</button>
+            </div>
+          </div>
+
+          <div class="account-meta" id="currentUserHandle">@player</div>
+
+          <div id="profileEditor" class="profile-editor hidden">
+            <label class="sr-only" for="profileNameInput">Display name</label>
+            <input id="profileNameInput" type="text" maxlength="20" placeholder="Display name" />
+
+            <label class="sr-only" for="profileUsernameInput">Username</label>
+            <input id="profileUsernameInput" type="text" maxlength="20" placeholder="Username" />
+            <div id="profileUsernameHint" class="auth-hint" aria-live="polite"></div>
+
+            <div class="profile-actions">
+              <button id="saveProfileBtn" class="primary" type="button">Save changes</button>
+              <button id="cancelProfileBtn" class="ghost" type="button">Cancel</button>
+            </div>
+          </div>
+
+          <div class="account-grid">
+            <div class="stat-box compact">
+              <span class="label">Streak</span>
+              <strong id="streakValue">0</strong>
+            </div>
+            <div class="stat-box compact">
+              <span class="label">Best WPM</span>
+              <strong id="profileBestValue">0</strong>
+            </div>
+            <div class="stat-box compact">
+              <span class="label">Sessions</span>
+              <strong id="profileSessionValue">0</strong>
+            </div>
+          </div>
+
+          <div class="achievement-box">
+            <p class="label">Achievements</p>
+            <div id="achievementList" class="achievement-list"></div>
+          </div>
+
+          <div id="adminTools" class="admin-tools hidden">
+            <p class="label">Admin tools</p>
+            <div class="admin-actions">
+              <button id="adminResetLeaderboardBtn" class="ghost" type="button">Reset leaderboard</button>
+              <button id="adminResetStatsBtn" class="ghost" type="button">Reset stats</button>
+              <button id="adminStreakBoostBtn" class="primary" type="button">Boost streak</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main id="appMain" class="app hidden">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Practice</p>
+          <h1>Typing Speed Test</h1>
+        </div>
+        <div class="header-actions">
+          <button id="soundBtn" class="secondary" type="button">Sound: On</button>
+          <button id="fullscreenBtn" class="secondary" type="button">Fullscreen</button>
+          <button id="restartBtn" class="secondary" type="button">Restart</button>
+          <button id="mainLogoutBtn" class="ghost" type="button">Logout</button>
+        </div>
+      </header>
+
+      <div id="mainAccountPanel" class="account-panel app-account-panel hidden">
+        <div class="account-header">
+          <div>
+            <p class="eyebrow">Welcome</p>
+            <h3 id="mainUserName">Player</h3>
+          </div>
+          <div class="account-actions">
+            <button id="mainEditProfileBtn" class="ghost" type="button">Edit profile</button>
+          </div>
+        </div>
+        <div class="account-meta" id="mainUserHandle">@player</div>
+        <div class="account-grid">
+          <div class="stat-box compact">
+            <span class="label">Streak</span>
+            <strong id="mainUserStreak">0</strong>
+          </div>
+          <div class="stat-box compact">
+            <span class="label">Best WPM</span>
+            <strong id="mainUserBest">0</strong>
+          </div>
+          <div class="stat-box compact">
+            <span class="label">Sessions</span>
+            <strong id="mainUserSessions">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <section class="controls" aria-label="typing controls">
+        <div class="control-group">
+          <label for="modeSelect">Mode</label>
+          <select id="modeSelect">
+            <option value="sentences" selected>Sentences</option>
+            <option value="words">Words</option>
+            <option value="numbers">Numbers</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="challengeSelect">Challenge</label>
+          <select id="challengeSelect">
+            <option value="sprint30">Sprint 30s</option>
+            <option value="classic60" selected>Classic 60s</option>
+            <option value="precision45">Precision 45s</option>
+            <option value="daily">Daily challenge</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="difficultySelect">Difficulty</label>
+          <select id="difficultySelect">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="drillSelect">Drill</label>
+          <select id="drillSelect">
+            <option value="all" selected>All keys</option>
+            <option value="home-row">Home row</option>
+            <option value="punctuation">Punctuation</option>
+            <option value="numbers">Numbers</option>
+            <option value="caps">Capital letters</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="themeSelect">Theme</label>
+          <select id="themeSelect">
+            <option value="midnight" selected>Midnight</option>
+            <option value="sunset">Sunset</option>
+            <option value="forest">Forest</option>
+            <option value="lavender">Lavender</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="daily-panel">
+        <div class="daily-header">
+          <div>
+            <p class="eyebrow">Daily challenge</p>
+            <h2 id="dailyChallengeTitle">Focus sprint</h2>
+          </div>
+          <button id="dailyChallengeBtn" class="primary" type="button">Start today</button>
+        </div>
+        <p id="dailyChallengeText" class="daily-text">Goal: build rhythm and trust your fingers.</p>
+      </section>
+
+      <section id="battlePanel" class="battle-panel hidden">
+        <div class="battle-header">
+          <div>
+            <p class="eyebrow">Battle</p>
+            <h2>CPU battle</h2>
+          </div>
+          <span id="battleStatus" class="battle-status">Waiting for launch</span>
+        </div>
+        <div class="battle-progress-wrap">
+          <div class="battle-labels">
+            <span>You</span>
+            <span>CPU</span>
+          </div>
+          <div class="battle-progress">
+            <div id="playerBattleProgress" class="battle-bar player-bar"></div>
+            <div id="cpuBattleProgress" class="battle-bar cpu-bar"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="custom-panel">
+        <div class="custom-header">
+          <label for="customTextInput">Custom text</label>
+          <div class="inline-actions">
+            <button id="useCustomTextBtn" type="button" class="primary">Use custom text</button>
+            <button id="randomQuoteBtn" type="button" class="ghost">Random quote</button>
+          </div>
+        </div>
+        <textarea
+          id="customTextInput"
+          rows="4"
+          placeholder="Paste your own practice text here..."
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        ></textarea>
+      </section>
+
+      <section class="stats" aria-label="typing statistics">
+        <div class="stat-box">
+          <span class="label">Time</span>
+          <strong id="timeValue">60</strong>
+        </div>
+        <div class="stat-box">
+          <span class="label">WPM</span>
+          <strong id="wpmValue">0</strong>
+        </div>
+        <div class="stat-box">
+          <span class="label">Accuracy</span>
+          <strong id="accuracyValue">100%</strong>
+        </div>
+        <div class="stat-box">
+          <span class="label">Chars</span>
+          <strong id="charsValue">0</strong>
+        </div>
+      </section>
+
+      <section class="dashboard-grid" aria-label="performance summary">
+        <div class="stat-box compact">
+          <span class="label">Best WPM</span>
+          <strong id="bestWpmValue">0</strong>
+        </div>
+        <div class="stat-box compact">
+          <span class="label">Avg Accuracy</span>
+          <strong id="avgAccuracyValue">0%</strong>
+        </div>
+        <div class="stat-box compact">
+          <span class="label">Sessions</span>
+          <strong id="sessionsValue">0</strong>
+        </div>
+        <div class="stat-box compact">
+          <span class="label">Streak</span>
+          <strong id="mainStreakValue">0</strong>
+        </div>
+        <div class="stat-box compact">
+          <span class="label">Daily Best</span>
+          <strong id="dailyBestValue">--</strong>
+        </div>
+      </section>
+
+      <section class="progress-panel" aria-label="typing progress">
+        <div class="progress-header">
+          <span>Progress</span>
+          <strong id="progressValue">0%</strong>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </section>
+
+      <section class="insights-grid" aria-label="practice insights">
+        <div class="panel-block">
+          <div class="panel-header">
+            <h2>Weekly momentum</h2>
+          </div>
+          <div id="weeklyChart" class="weekly-chart" aria-label="weekly typing trends"></div>
+        </div>
+
+        <div class="panel-block">
+          <div class="panel-header">
+            <h2>Recent sessions</h2>
+          </div>
+          <ul id="historyList" class="history-list"></ul>
+        </div>
+      </section>
+
+      <section class="text-panel">
+        <p id="quote" class="quote" aria-live="polite"></p>
+      </section>
+
+      <label class="sr-only" for="typingInput">Type the text here</label>
+      <textarea
+        id="typingInput"
+        rows="6"
+        placeholder="Start typing here..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      ></textarea>
+
+      <div id="message" class="message" aria-live="polite">Press start typing to begin.</div>
+
+      <section class="leaderboard-panel" aria-label="leaderboard">
+        <div class="leaderboard-header">
+          <h2>Leaderboard</h2>
+          <div class="leaderboard-inputs">
+            <input id="playerName" type="text" maxlength="18" placeholder="Your name" />
+            <button id="saveScoreBtn" class="primary" type="button">Save score</button>
+          </div>
+        </div>
+        <ol id="leaderboardList" class="leaderboard-list"></ol>
+      </section>
+    </main>
+
+    <div id="summaryModal" class="modal hidden" aria-live="polite" aria-modal="true" role="dialog">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Run Summary</h3>
+          <button id="closeSummaryBtn" class="ghost" type="button">Close</button>
+        </div>
+        <div class="summary-grid">
+          <div>
+            <span class="label">WPM</span>
+            <strong id="summaryWpm">0</strong>
+          </div>
+          <div>
+            <span class="label">Accuracy</span>
+            <strong id="summaryAccuracy">0%</strong>
+          </div>
+          <div>
+            <span class="label">Mode</span>
+            <strong id="summaryMode">-</strong>
+          </div>
+          <div>
+            <span class="label">Challenge</span>
+            <strong id="summaryChallenge">-</strong>
+          </div>
+        </div>
+        <p id="summaryNote" class="summary-note">Nice work.</p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
