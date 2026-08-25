@@ -1,3 +1,20 @@
+// --- Firebase Configuration ---
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY_HERE",
+  authDomain: "YOUR_AUTH_DOMAIN_HERE",
+  projectId: "YOUR_PROJECT_ID_HERE",
+  storageBucket: "YOUR_STORAGE_BUCKET_HERE",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
+  appId: "YOUR_APP_ID_HERE"
+};
+// Initialize Firebase
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const db = firebase.firestore();
+// ------------------------------
+
 const challengeConfig = {
   sprint30: { label: 'Sprint 30s', seconds: 30 },
   classic60: { label: 'Classic 60s', seconds: 60 },
@@ -556,79 +573,93 @@ function setAuthMode(mode) {
   signupForm.classList.toggle('hidden', mode !== 'signup');
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
   event.preventDefault();
-  const username = normalizeUsername(loginUsername.value);
+  const email = loginUsername.value.trim(); // Firebase requires email
   const password = loginPassword.value.trim();
-  const users = getUsers();
-  const user = users.find((entry) => normalizeUsername(entry.username) === username && entry.password === password);
 
   loginUsername.setCustomValidity('');
   loginPassword.setCustomValidity('');
 
-  if (!username || !password || !user) {
-    loginUsername.setCustomValidity('Invalid username or password');
-    loginPassword.setCustomValidity('Invalid username or password');
-    messageEl.textContent = 'Invalid username or password.';
+  if (!email || !password) {
+    messageEl.textContent = 'Please enter an email and password.';
     messageEl.className = 'message error';
     return;
   }
 
-  setCurrentUser(user);
-  loginForm.reset();
-  renderAccountPanel();
-  messageEl.textContent = `Welcome back, ${user.name || user.username}!`;
-  messageEl.className = 'message success';
+  try {
+    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    const fbUser = userCredential.user;
+    
+    // Fetch profile from Firestore
+    const docRef = await db.collection('users').doc(fbUser.uid).get();
+    let userData = docRef.exists ? docRef.data() : { name: email, username: email };
+    
+    setCurrentUser({ ...userData, id: fbUser.uid });
+    loginForm.reset();
+    renderAccountPanel();
+    messageEl.textContent = `Welcome back, ${userData.name || userData.username}!`;
+    messageEl.className = 'message success';
+  } catch (error) {
+    loginUsername.setCustomValidity('Invalid credentials');
+    loginPassword.setCustomValidity('Invalid credentials');
+    messageEl.textContent = error.message;
+    messageEl.className = 'message error';
+  }
 }
 
-function handleSignup(event) {
+async function handleSignup(event) {
   event.preventDefault();
   const name = signupName.value.trim();
-  const username = normalizeUsername(signupUsername.value);
+  const email = normalizeUsername(signupUsername.value); // Use as email for Firebase
   const password = signupPassword.value.trim();
 
   signupUsername.setCustomValidity('');
   signupPassword.setCustomValidity('');
 
-  if (!name || !username || password.length < 4) {
-    signupUsername.setCustomValidity('Username is required');
-    signupPassword.setCustomValidity('Password must be at least 4 characters');
-    messageEl.textContent = 'Please add a display name, a username, and use a password with at least 4 characters.';
+  if (!name || !email || password.length < 6) {
+    messageEl.textContent = 'Please add a display name, an email, and use a password with at least 6 characters.';
     messageEl.className = 'message error';
     return;
   }
 
-  const users = getUsers();
-  const existing = users.some((entry) => normalizeUsername(entry.username) === username);
-
-  if (existing) {
-    signupUsername.setCustomValidity('Username is already taken');
-    signupUsernameHint.textContent = 'Username is already taken.';
-    signupUsernameHint.classList.add('error');
-    signupUsernameHint.classList.remove('success');
-    messageEl.textContent = 'That username is already taken.';
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const fbUser = userCredential.user;
+    
+    // Create new user profile
+    const newUser = createUserProfile(name, email, password);
+    newUser.id = fbUser.uid;
+    newUser.email = email;
+    
+    // Save to Firestore
+    await db.collection('users').doc(fbUser.uid).set(newUser);
+    
+    setCurrentUser(newUser);
+    signupForm.reset();
+    signupUsernameHint.textContent = '';
+    signupUsernameHint.className = 'auth-hint';
+    renderAccountPanel();
+    messageEl.textContent = `Account created for ${newUser.name}.`;
+    messageEl.className = 'message success';
+  } catch (error) {
+    messageEl.textContent = error.message;
     messageEl.className = 'message error';
-    return;
   }
-
-  const newUser = createUserProfile(name, username, password);
-  users.push(newUser);
-  saveUsers(users);
-  setCurrentUser(newUser);
-  signupForm.reset();
-  signupUsernameHint.textContent = '';
-  signupUsernameHint.className = 'auth-hint';
-  renderAccountPanel();
-  messageEl.textContent = `Account created for ${newUser.name}.`;
-  messageEl.className = 'message success';
 }
 
-function logoutUser() {
-  localStorage.removeItem(currentUserKey);
-  profileEditor.classList.add('hidden');
-  renderAccountPanel();
-  messageEl.textContent = 'You have been logged out.';
-  messageEl.className = 'message';
+async function logoutUser() {
+  try {
+    await auth.signOut();
+    localStorage.removeItem(currentUserKey);
+    profileEditor.classList.add('hidden');
+    renderAccountPanel();
+    messageEl.textContent = 'You have been logged out.';
+    messageEl.className = 'message';
+  } catch (error) {
+    messageEl.textContent = error.message;
+    messageEl.className = 'message error';
+  }
 }
 
 function openProfileEditor() {
@@ -1012,7 +1043,33 @@ function getLeaderboard() {
 
 function adminResetLeaderboard() {
   localStorage.setItem(leaderboardKey, JSON.stringify([]));
-  renderLeaderboard();
+  // renderLeaderboard(); replaced by real-time Firestore listener
+db.collection('leaderboard')
+  .orderBy('wpm', 'desc')
+  .limit(5)
+  .onSnapshot((snapshot) => {
+    const scores = [];
+    snapshot.forEach((doc) => {
+      scores.push(doc.data());
+    });
+    
+    // override getLeaderboard just for rendering
+    leaderboardList.innerHTML = scores.length
+      ? scores.map((s, i) => `
+        <li>
+          <div class="rank">#${i + 1}</div>
+          <div class="info">
+            <span class="name">${s.name}</span>
+            <span class="meta">${s.mode} - ${s.challenge}</span>
+          </div>
+          <div class="score">
+            <strong>${s.wpm}</strong> wpm
+            <span class="acc">${s.accuracy}%</span>
+          </div>
+        </li>
+      `).join('')
+      : '<li class="empty">No scores yet. Finish a run to add one.</li>';
+  });
   messageEl.textContent = 'Leaderboard reset by admin.';
   messageEl.className = 'message success';
 }
@@ -1165,7 +1222,33 @@ function saveScore() {
     .slice(0, 5);
 
   saveLeaderboard(topScores);
-  renderLeaderboard();
+  // renderLeaderboard(); replaced by real-time Firestore listener
+db.collection('leaderboard')
+  .orderBy('wpm', 'desc')
+  .limit(5)
+  .onSnapshot((snapshot) => {
+    const scores = [];
+    snapshot.forEach((doc) => {
+      scores.push(doc.data());
+    });
+    
+    // override getLeaderboard just for rendering
+    leaderboardList.innerHTML = scores.length
+      ? scores.map((s, i) => `
+        <li>
+          <div class="rank">#${i + 1}</div>
+          <div class="info">
+            <span class="name">${s.name}</span>
+            <span class="meta">${s.mode} - ${s.challenge}</span>
+          </div>
+          <div class="score">
+            <strong>${s.wpm}</strong> wpm
+            <span class="acc">${s.accuracy}%</span>
+          </div>
+        </li>
+      `).join('')
+      : '<li class="empty">No scores yet. Finish a run to add one.</li>';
+  });
 
   messageEl.textContent = `Saved: ${entry.name} reached ${entry.wpm} WPM at ${entry.accuracy}% accuracy.`;
   messageEl.className = 'message success';
@@ -1357,7 +1440,33 @@ setAuthMode('login');
 updateModeFromChallenge();
 renderHistory();
 renderWeeklyChart();
-renderLeaderboard();
+// renderLeaderboard(); replaced by real-time Firestore listener
+db.collection('leaderboard')
+  .orderBy('wpm', 'desc')
+  .limit(5)
+  .onSnapshot((snapshot) => {
+    const scores = [];
+    snapshot.forEach((doc) => {
+      scores.push(doc.data());
+    });
+    
+    // override getLeaderboard just for rendering
+    leaderboardList.innerHTML = scores.length
+      ? scores.map((s, i) => `
+        <li>
+          <div class="rank">#${i + 1}</div>
+          <div class="info">
+            <span class="name">${s.name}</span>
+            <span class="meta">${s.mode} - ${s.challenge}</span>
+          </div>
+          <div class="score">
+            <strong>${s.wpm}</strong> wpm
+            <span class="acc">${s.accuracy}%</span>
+          </div>
+        </li>
+      `).join('')
+      : '<li class="empty">No scores yet. Finish a run to add one.</li>';
+  });
 renderStats();
 renderAccountPanel();
 resetTest();

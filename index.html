@@ -22,8 +22,8 @@
         </div>
 
         <form id="loginForm" class="auth-form" novalidate>
-          <label class="sr-only" for="loginUsername">Username</label>
-          <input id="loginUsername" type="text" placeholder="Username" maxlength="20" required />
+          <label class="sr-only" for="loginUsername">Email</label>
+          <input id="loginUsername" type="email" placeholder="Email" maxlength="100" required />
 
           <label class="sr-only" for="loginPassword">Password</label>
           <input id="loginPassword" type="password" placeholder="Password" required />
@@ -35,8 +35,8 @@
           <label class="sr-only" for="signupName">Display name</label>
           <input id="signupName" type="text" placeholder="Display name" maxlength="20" required />
 
-          <label class="sr-only" for="signupUsername">Username</label>
-          <input id="signupUsername" type="text" placeholder="Username" maxlength="20" required />
+          <label class="sr-only" for="signupUsername">Email</label>
+          <input id="signupUsername" type="email" placeholder="Email" maxlength="100" required />
           <div id="signupUsernameHint" class="auth-hint" aria-live="polite"></div>
 
           <label class="sr-only" for="signupPassword">Password</label>
@@ -372,6 +372,11 @@
         <p id="summaryNote" class="summary-note">Nice work.</p>
       </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 
     <script src="script.js"></script>
   </body>
