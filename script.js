@@ -606,6 +606,7 @@ async function handleLogin(event) {
     loginPassword.setCustomValidity('Invalid credentials');
     messageEl.textContent = error.message;
     messageEl.className = 'message error';
+    alert("Firebase Error: " + error.message);
   }
 }
 
@@ -646,6 +647,7 @@ async function handleSignup(event) {
   } catch (error) {
     messageEl.textContent = error.message;
     messageEl.className = 'message error';
+    alert("Firebase Error: " + error.message);
   }
 }
 
@@ -660,6 +662,7 @@ async function logoutUser() {
   } catch (error) {
     messageEl.textContent = error.message;
     messageEl.className = 'message error';
+    alert("Firebase Error: " + error.message);
   }
 }
 
