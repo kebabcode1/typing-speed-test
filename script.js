@@ -1,11 +1,12 @@
 // --- Firebase Configuration ---
 const firebaseConfig = {
-  apiKey: "AIzaSyDHxhrzzguwp2B0kqvKwyxcdAr9S6MMx0U",
+  apiKey: "AIzaSyDHXhrzzguwp2B0kqvKwyxcdAr9S6MMx0U",
   authDomain: "typingspeeds-d805c.firebaseapp.com",
   projectId: "typingspeeds-d805c",
   storageBucket: "typingspeeds-d805c.firebasestorage.app",
   messagingSenderId: "978145577177",
-  appId: "1:978145577177:web:e653a2d49b196fe7ecd6c8"
+  appId: "1:978145577177:web:e653a2d49b196fe7ecd6c8",
+  measurementId: "G-K7P7MZSMC3"
 };
 // Initialize Firebase
 if (!firebase.apps.length) {
