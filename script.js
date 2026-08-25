@@ -576,25 +576,26 @@ function setAuthMode(mode) {
 
 async function handleLogin(event) {
   event.preventDefault();
-  const email = loginUsername.value.trim(); // Firebase requires email
+  const username = normalizeUsername(loginUsername.value);
   const password = loginPassword.value.trim();
+  const fakeEmail = username + '@typing-speed-test.local';
 
   loginUsername.setCustomValidity('');
   loginPassword.setCustomValidity('');
 
-  if (!email || !password) {
-    messageEl.textContent = 'Please enter an email and password.';
+  if (!username || !password) {
+    messageEl.textContent = 'Please enter a username and password.';
     messageEl.className = 'message error';
     return;
   }
 
   try {
-    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    const userCredential = await auth.signInWithEmailAndPassword(fakeEmail, password);
     const fbUser = userCredential.user;
     
     // Fetch profile from Firestore
     const docRef = await db.collection('users').doc(fbUser.uid).get();
-    let userData = docRef.exists ? docRef.data() : { name: email, username: email };
+    let userData = docRef.exists ? docRef.data() : { name: username, username: username };
     
     setCurrentUser({ ...userData, id: fbUser.uid });
     loginForm.reset();
@@ -613,26 +614,27 @@ async function handleLogin(event) {
 async function handleSignup(event) {
   event.preventDefault();
   const name = signupName.value.trim();
-  const email = normalizeUsername(signupUsername.value); // Use as email for Firebase
+  const username = normalizeUsername(signupUsername.value);
   const password = signupPassword.value.trim();
+  const fakeEmail = username + '@typing-speed-test.local';
 
   signupUsername.setCustomValidity('');
   signupPassword.setCustomValidity('');
 
-  if (!name || !email || password.length < 6) {
-    messageEl.textContent = 'Please add a display name, an email, and use a password with at least 6 characters.';
+  if (!name || !username || password.length < 6) {
+    messageEl.textContent = 'Please add a display name, a username, and use a password with at least 6 characters.';
     messageEl.className = 'message error';
     return;
   }
 
   try {
-    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const userCredential = await auth.createUserWithEmailAndPassword(fakeEmail, password);
     const fbUser = userCredential.user;
     
     // Create new user profile
-    const newUser = createUserProfile(name, email, password);
+    const newUser = createUserProfile(name, username, password);
     newUser.id = fbUser.uid;
-    newUser.email = email;
+    newUser.email = null; // Removed email
     
     // Save to Firestore
     await db.collection('users').doc(fbUser.uid).set(newUser);
