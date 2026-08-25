@@ -1,11 +1,11 @@
 // --- Firebase Configuration ---
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_AUTH_DOMAIN_HERE",
-  projectId: "YOUR_PROJECT_ID_HERE",
-  storageBucket: "YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
-  appId: "YOUR_APP_ID_HERE"
+  apiKey: "AIzaSyDHxhrzzguwp2B0kqvKwyxcdAr9S6MMx0U",
+  authDomain: "typingspeeds-d805c.firebaseapp.com",
+  projectId: "typingspeeds-d805c",
+  storageBucket: "typingspeeds-d805c.firebasestorage.app",
+  messagingSenderId: "978145577177",
+  appId: "1:978145577177:web:e653a2d49b196fe7ecd6c8"
 };
 // Initialize Firebase
 if (!firebase.apps.length) {
